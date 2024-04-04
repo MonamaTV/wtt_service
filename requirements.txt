@@ -1,0 +1,15 @@
+annotated-types
+anyio
+exceptiongroup
+fastapi
+idna
+pydantic
+pydantic_core
+python-dotenv
+sniffio
+starlette
+typing_extensions
+jose
+passlib
+SQLAlchemy
+uvicorn

@@ -1,0 +1,4 @@
+.env
+/venv
+typing.db
+/.mypy_cache
