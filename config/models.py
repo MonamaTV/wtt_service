@@ -13,7 +13,7 @@ class Base(DeclarativeBase):
 association_table = Table(
     "competition_user_mapping",
     Base.metadata,
-    Column("users", ForeignKey("user.id"), primary_key=True),
+    Column("users", ForeignKey("users.id"), primary_key=True),
     Column("competitions", ForeignKey("competitions.id"), primary_key=True),
     Column("score_id", String)
 )
@@ -25,7 +25,8 @@ class Competition(Base):
     id: Mapped[UUID] = mapped_column(primary_key=True, index=True, default=uuid4())
     creator_id: Mapped[UUID] = mapped_column(ForeignKey("users.id"))
     name: Mapped[Optional[str]]
-
+    created_at: Mapped[Optional[date]] = mapped_column(default=datetime.now())
+    expires_in: Mapped[date]
     users: Mapped[List["User"]] = relationship(
         secondary=association_table, back_populates="competitions"
     )
@@ -81,5 +82,3 @@ class Leaderboard(Base):
     score: Mapped[int]
     accuracy: Mapped[float]
     # More to come in here
-
-

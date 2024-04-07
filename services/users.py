@@ -17,9 +17,26 @@ oauth2 = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
 
 def create_user(user: Register, db: Session):
+    exception = HTTPException(
+        status_code=400,
+        detail="Passwords do not match.",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    # Verify a wethinkcode email.
+    email_split = user.email.split("@")
+    if email_split[1].lower() != "student.wethinkcode.co.za":
+        raise HTTPException(status_code=400, detail="Invalid WeThinkCode email")
+
+    if email_split[0][-3:] != "023":
+        raise HTTPException(status_code=400, detail=f"Cohost {email_split[0][-3:]} not permitted")
+
+
     db_user = db.query(User).filter(User.email == user.email).first()
     if db_user:
         raise NotFound("User already exists.")
+
+    if user.password != user.confirm_password:
+        raise exception
 
     hashed_password = hash_password(user.password)
 
@@ -90,7 +107,7 @@ def get_user(decoded_token: Dict[str, any], db: Session):
 
 def get_logged_in_user(token: Annotated[str, Depends(oauth2)], db: Session = Depends(get_db)):
     credentials_exception = HTTPException(
-        status_code=401,
+        status_code=403,
         detail="Could not validate credentials",
         headers={"WWW-Authenticate": "Bearer"},
     )

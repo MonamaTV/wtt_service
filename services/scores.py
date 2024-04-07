@@ -2,11 +2,24 @@ from config.schemas import ScoreModel
 from sqlalchemy.orm import Session
 from config.models import Score
 from utils.exceptions import HTTPError
+from datetime import datetime
 
 
 def create_score(user, score: ScoreModel, db: Session):
-    score_with_user_id = {**score.model_dump(exclude_none=True), "user_id": user.id}
-    new_score = Score(**score_with_user_id)
+    # Calculations
+    wpm = score.characters / 5 / (score.duration / 60)
+    correct = score.characters - score.errors
+    accuracy = round((correct / score.characters) * 100)
+
+    score_with_details = {
+        **score.model_dump(exclude_none=True, ),
+        "user_id": user.id,
+        "played_at": datetime.now(),
+        "wpm": wpm,
+        "accuracy": accuracy
+    }
+    del score_with_details["errors"]
+    new_score = Score(**score_with_details)
     db.add(new_score)
     db.commit()
 

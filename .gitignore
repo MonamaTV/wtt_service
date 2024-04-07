@@ -2,3 +2,5 @@
 /venv
 typing.db
 /.mypy_cache
+/.idea
+__pycache__

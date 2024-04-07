@@ -29,4 +29,4 @@ def login_user(_: Request, login: Login, db: Session = Depends(get_db)):
     except NotFound as e:
         raise HTTPException(status_code=400, detail=str(e)) from e
     
-    
+

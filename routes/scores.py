@@ -23,7 +23,11 @@ def get_user_scores(_: Request, current_user=Depends(get_logged_in_user), db: Se
 @router.post("/")
 def add_new_score(_: Request, score: ScoreModel, current_user=Depends(get_logged_in_user), db: Session = Depends(get_db)):
     try:
+        print("Before Creating score")
+
         new_score = create_score(current_user, score, db)
         return new_score
     except NotFound as e:
+        print("Creating score exception")
+
         raise HTTPError(status_code=400, detail=str(e))

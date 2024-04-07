@@ -1,22 +1,23 @@
-from typing import Optional
+from typing import Optional, List
 from datetime import date, time
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field, SecretStr
 
 
 class ScoreModel(BaseModel):
     user_id: Optional[str] = None
-    wpm: float
+    wpm: Optional[float] = None
     played_at: Optional[date] = None
     words: int
-    accuracy: float
-    duration: time
+    accuracy: Optional[float] = None
+    duration: int  # The duration of the test in seconds
     characters: int
     completed: bool
+    errors: Optional[int] = None
 
 
 class Login(BaseModel):
-    password: str
-    email: str
+    password: Optional[str]
+    email: Optional[EmailStr]
 
 
 class UserModel(BaseModel):
@@ -26,5 +27,10 @@ class UserModel(BaseModel):
 
 class Register(UserModel):
     email: EmailStr
-    password: str
-    confirm_password: str
+    password: str = Field(min_length=8)
+    confirm_password: str = Field(min_length=8)
+
+
+class CompetitionModel(BaseModel):
+    name: str
+    competitors: List[EmailStr]
