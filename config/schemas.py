@@ -1,16 +1,16 @@
 from typing import Optional, List
 from datetime import date, time
-from pydantic import BaseModel, EmailStr, Field, SecretStr
+from pydantic import BaseModel, EmailStr, Field
 
 
 class ScoreModel(BaseModel):
     user_id: Optional[str] = None
     wpm: Optional[float] = None
     played_at: Optional[date] = None
-    words: int
+    words: int = Field(ge=0)
     accuracy: Optional[float] = None
     duration: int  # The duration of the test in seconds
-    characters: int
+    characters: int = Field(ge=0)
     completed: bool
     errors: Optional[int] = None
 

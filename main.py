@@ -40,8 +40,7 @@ app.include_router(competitions_router)
 @app.on_event("startup")
 def start_server():
     Base.metadata.create_all(bind=engine)
-    print(f"Server is now running on PsORT: 3000")
-
+    print(f"Server is now running on PORT: 3000")
 
 
 @app.exception_handler(RequestValidationError)
@@ -59,7 +58,7 @@ async def validation_exception_handler(request, exc):
 
 @app.get("/")
 async def root():
-    return {"message": "Server is running.!."}
+    return {"message": "Server is running!"}
 
 
 if __name__ == "__main__":

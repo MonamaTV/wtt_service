@@ -12,7 +12,6 @@ from fastapi.encoders import jsonable_encoder
 from uuid import UUID
 from config.schemas import Register, Login, UserModel
 
-
 oauth2 = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
 
@@ -29,7 +28,6 @@ def create_user(user: Register, db: Session):
 
     if email_split[0][-3:] != "023":
         raise HTTPException(status_code=400, detail=f"Cohost {email_split[0][-3:]} not permitted")
-
 
     db_user = db.query(User).filter(User.email == user.email).first()
     if db_user:
@@ -95,7 +93,7 @@ def get_user(decoded_token: Dict[str, any], db: Session):
         detail="Could not validate credentials",
         headers={"WWW-Authenticate": "Bearer"},
     )
-    
+
     user_id, email = decoded_token.get("user_id"), decoded_token.get("email")
 
     user = db.query(User).filter(

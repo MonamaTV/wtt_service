@@ -18,6 +18,7 @@ def create_score(user, score: ScoreModel, db: Session):
         "wpm": wpm,
         "accuracy": accuracy
     }
+    print(score_with_details)
     del score_with_details["errors"]
     new_score = Score(**score_with_details)
     db.add(new_score)

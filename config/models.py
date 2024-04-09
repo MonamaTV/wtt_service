@@ -36,7 +36,7 @@ class User(Base):
     __tablename__ = "users"
 
     id: Mapped[UUID] = mapped_column(primary_key=True, index=True, default=uuid4())
-    email: Mapped[str] = mapped_column()
+    email: Mapped[str] = mapped_column(unique=True)
     first_name: Mapped[Optional[str]]
     last_name: Mapped[Optional[str]]
     password: Mapped[str]
@@ -59,7 +59,7 @@ class Score(Base):
     played_at: Mapped[Optional[date]] = mapped_column(default=datetime.now())
     words: Mapped[int]
     accuracy: Mapped[float]
-    duration: Mapped[time]
+    duration: Mapped[int]
     characters: Mapped[int]
     completed: Mapped[bool]
 
