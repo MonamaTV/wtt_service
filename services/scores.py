@@ -28,8 +28,21 @@ def create_score(user, score: ScoreModel, db: Session):
     return new_score
 
 
-def get_scores_by_user(user, db: Session):
-    scores_user = db.query(Score).join(User).filter(User.id == user.id).all()
+def get_sort(sorter):
+    if sorter == 1:
+        return Score.played_at
+    elif sorter == 2:
+        return Score.accuracy
+    else:
+        return Score.wpm
+
+
+def get_scores_by_user(user, query, db: Session):
+    scores_user = (db.query(Score).join(User)
+                   .filter(User.id == user.id)
+                   .order_by(get_sort(query["sort"]))
+                   .limit(query["limit"])
+                   .all())
     print([score.user for score in scores_user])
 
     if scores_user is None:

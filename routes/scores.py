@@ -12,9 +12,16 @@ router = APIRouter(
 
 
 @router.get("/")
-def get_user_scores(_: Request, current_user=Depends(get_logged_in_user), db: Session = Depends(get_db)):
+def get_user_scores(_: Request, limit: int = 10,
+                    sort: int = 1,
+                    current_user=Depends(get_logged_in_user),
+                    db: Session = Depends(get_db)):
     try:
-        scores = get_scores_by_user(current_user, db)
+        query = {
+            "limit": limit,
+            "sort": sort
+        }
+        scores = get_scores_by_user(current_user, query, db)
         return scores
     except NotFound as e:
         raise HTTPError(status_code=400, detail=str(e))
