@@ -7,12 +7,12 @@ class ScoreModel(BaseModel):
     user_id: Optional[str] = None
     wpm: Optional[float] = None
     played_at: Optional[date] = None
-    words: int = Field(ge=0)
+    words: int = Field(gt=0)
     accuracy: Optional[float] = None
     duration: int  # The duration of the test in seconds
-    characters: int = Field(ge=0)
+    characters: int = Field(gt=0)
     completed: bool
-    errors: Optional[int] = None
+    errors: Optional[int] = Field(ge=0)
 
 
 class Login(BaseModel):

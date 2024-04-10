@@ -1,8 +1,9 @@
 from config.schemas import ScoreModel
 from sqlalchemy.orm import Session
-from config.models import Score
+from config.models import Score, User
 from utils.exceptions import HTTPError
 from datetime import datetime
+from sqlalchemy import select
 
 
 def create_score(user, score: ScoreModel, db: Session):
@@ -28,7 +29,9 @@ def create_score(user, score: ScoreModel, db: Session):
 
 
 def get_scores_by_user(user, db: Session):
-    scores = db.query(Score).filter(Score.user_id == user.id).all()
-    if scores is None:
+    scores_user = db.query(Score).join(User).filter(User.id == user.id).all()
+    print([score.user for score in scores_user])
+
+    if scores_user is None:
         raise HTTPError(status_code=404, detail="Could not find users scores")
-    return scores
+    return scores_user
