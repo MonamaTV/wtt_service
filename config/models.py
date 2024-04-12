@@ -13,8 +13,8 @@ class Base(DeclarativeBase):
 association_table = Table(
     "competition_user_mapping",
     Base.metadata,
-    Column("users", ForeignKey("users.id"), primary_key=True),
-    Column("competitions", ForeignKey("competitions.id"), primary_key=True),
+    Column("user_id", ForeignKey("users.id"), primary_key=True),
+    Column("competition_id", ForeignKey("competitions.id"), primary_key=True),
     Column("score_id", String)
 )
 

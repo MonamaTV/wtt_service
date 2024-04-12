@@ -48,7 +48,7 @@ async def validation_exception_handler(request, exc):
     error_type, field, required = (exc.errors()[0].get("type"),
                                    exc.errors()[0].get("loc")[1],
                                    exc.errors()[0].get("ctx", {}).values())
-    print(error_type)
+    print(error_type, field, required, exc)
     message = decode_error_message(error_type, field, list(required))
     return JSONResponse(
         status_code=400,

@@ -1,9 +1,10 @@
+from pydantic import EmailStr
 from sqlalchemy.orm import Session
 from config.models import User
 from utils.exceptions import NotFound
 from config.db import get_db
 from utils.password import verify_password, hash_password
-from typing import Annotated, Dict
+from typing import Annotated, Dict, List
 from fastapi.security import OAuth2PasswordBearer
 from fastapi import Depends, HTTPException
 from jose import jwt, JWTError
@@ -11,6 +12,7 @@ from os import getenv
 from fastapi.encoders import jsonable_encoder
 from uuid import UUID
 from config.schemas import Register, Login, UserModel
+
 
 oauth2 = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
@@ -27,7 +29,7 @@ def create_user(user: Register, db: Session):
         raise HTTPException(status_code=400, detail="Invalid WeThinkCode email")
 
     if email_split[0][-3:] != "023":
-        raise HTTPException(status_code=400, detail=f"Cohost {email_split[0][-3:]} not permitted")
+        raise HTTPException(status_code=400, detail=f"Cohort {email_split[0][-3:]} not permitted")
 
     db_user = db.query(User).filter(User.email == user.email).first()
     if db_user:
@@ -149,3 +151,8 @@ def update_user(user, new_details: UserModel, db: Session):
 
 def deactivate_user():
     pass
+
+
+def get_users_by_email(emails: List[EmailStr], db: Session):
+    results = db.query(User).filter(User.email.in_(emails)).all()
+    return results
