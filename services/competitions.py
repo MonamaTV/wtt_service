@@ -12,6 +12,10 @@ from utils.exceptions import HTTPError
 
 
 def create_competition(user, competition: CompetitionModel, db: Session):
+
+    if len(competition.competitors) == 0:
+        raise HTTPError(status_code=400, detail="At least add one peer.")
+
     [validate_wtc_email(email) for email in competition.competitors]
 
     data = {
@@ -25,13 +29,14 @@ def create_competition(user, competition: CompetitionModel, db: Session):
     new_competition = Competition(**data)
 
     users = get_users_by_email(competition.competitors, db)
-
-    if users is None:
-        raise HTTPError(status_code=400, detail="Users not found")
+    if len(users) == 0:
+        raise HTTPError(status_code=400, detail="Peer(s) not found.")
 
     db.add(new_competition)
 
     db.commit()
+    print([{"user_id": user.id, "competition_id": new_competition.id}
+                for user in users])
     # Add the competitors now after creating a competition...
     db.execute(insert(association_table),
                [{"user_id": user.id, "competition_id": new_competition.id}
@@ -43,6 +48,7 @@ def create_competition(user, competition: CompetitionModel, db: Session):
 
 def get_competitions(user, db: Session):
     competitions = db.query(Competition).join(User).filter(Competition.creator_id == user.id).all()
+    print([user.users for user in competitions])
     if competitions is None:
         raise HTTPError(status_code=400, detail="Competitions not found")
     return competitions
@@ -52,11 +58,15 @@ def delete_competition(user, competition_id: UUID, db: Session):
     deleted_competition = db.query(Competition).filter(Competition.creator_id == user.id,
                                                        Competition.id == competition_id).delete()
     if deleted_competition is None:
-        raise HTTPError(status_code=400, detail="Competition not found")
+        raise HTTPError(status_code=400, detail="Competition not found.")
     return deleted_competition
 
 
 def remove_competitor():
+    pass
+
+
+def leave_competition():
     pass
 
 

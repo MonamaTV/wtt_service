@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from config.models import Score, User
 from utils.exceptions import HTTPError
 from datetime import datetime
-from sqlalchemy import select
+from sqlalchemy.sql import func
 
 
 def create_score(user, score: ScoreModel, db: Session):
@@ -19,7 +19,6 @@ def create_score(user, score: ScoreModel, db: Session):
         "wpm": wpm,
         "accuracy": accuracy
     }
-    print(score_with_details)
     del score_with_details["errors"]
     new_score = Score(**score_with_details)
     db.add(new_score)
@@ -44,7 +43,14 @@ def get_scores_by_user(user, query, db: Session):
                    .limit(query["limit"])
                    .all())
     print([score.user for score in scores_user])
-
+    some = calculate_leaderboard(db)
+    for user in some:
+        print("User", user[0], user[1])
     if scores_user is None:
         raise HTTPError(status_code=404, detail="Could not find users scores")
     return scores_user
+
+
+def calculate_leaderboard(db: Session):
+    results = db.query(Score, func.avg(Score.wpm).label("average")).join(User).all()
+    return results

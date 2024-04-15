@@ -12,6 +12,7 @@ from os import getenv
 from fastapi.encoders import jsonable_encoder
 from uuid import UUID
 from config.schemas import Register, Login, UserModel
+from datetime import datetime, timedelta
 
 
 oauth2 = OAuth2PasswordBearer(tokenUrl="/auth/login")
@@ -67,8 +68,9 @@ def authenticate_user(login: Login, db: Session):
 
 def create_user_access_token(user_data: Dict):
     to_encode = user_data.copy()
-    expires_in = getenv("ACCESS_TOKEN_EXPIRE_MINUTES")
-    # to_encode.update({"exp": 30})
+    expires_in = int(getenv("ACCESS_TOKEN_EXPIRE_HOURS"))
+    to_encode["exp"] = datetime.now() + timedelta(hours=expires_in)
+    print(to_encode)
     encoded_token = jwt.encode(to_encode, getenv(
         "SECRET_KEY"), algorithm=getenv("HASH_ALGO"))
     return encoded_token
