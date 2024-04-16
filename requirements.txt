@@ -13,3 +13,4 @@ jose
 passlib
 SQLAlchemy
 uvicorn
+requests

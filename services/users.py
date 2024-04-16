@@ -158,3 +158,8 @@ def deactivate_user():
 def get_users_by_email(emails: List[EmailStr], db: Session):
     results = db.query(User).filter(User.email.in_(emails)).all()
     return results
+
+
+def get_user_by_email(email: EmailStr, db: Session):
+    user = db.query(User).filter(User.email == email).first()
+    return user

@@ -7,12 +7,11 @@ from sqlalchemy import insert
 from config.schemas import CompetitionModel
 from utils.exceptions import validate_wtc_email
 from uuid import UUID
-from services.users import get_users_by_email
+from services.users import get_users_by_email, get_user_by_email
 from utils.exceptions import HTTPError
 
 
 def create_competition(user, competition: CompetitionModel, db: Session):
-
     if len(competition.competitors) == 0:
         raise HTTPError(status_code=400, detail="At least add one peer.")
 
@@ -36,7 +35,7 @@ def create_competition(user, competition: CompetitionModel, db: Session):
 
     db.commit()
     print([{"user_id": user.id, "competition_id": new_competition.id}
-                for user in users])
+           for user in users])
     # Add the competitors now after creating a competition...
     db.execute(insert(association_table),
                [{"user_id": user.id, "competition_id": new_competition.id}
@@ -66,20 +65,38 @@ def remove_competitor():
     pass
 
 
-def leave_competition():
-    pass
+def leave_competition(user, competition_id: UUID, db: Session):
+    deleted = (db.query(association_table)
+               .filter(association_table.user_id == user.id,
+                       association_table.competition_id == competition_id).delete())
+    if deleted is None:
+        raise HTTPError(status_code=400, detail=f"User not in competition: {competition_id}")
+    return deleted
 
 
-def add_competitor():
-    pass
+def add_competitor(curr_user, email: EmailStr, competition_id: UUID, db: Session):
+    user = get_user_by_email(email, db)
+    if user is None:
+        raise HTTPError(status_code=400, detail=f"User not found")
+
+    competitor = association_table(user_id=user.id, competition_id=competition_id)
+    db.add(competitor)
+    db.commit()
+    return competitor
 
 
 def add_competitors(competition_id: UUID, competitors: List[EmailStr]):
     pass
 
 
-def get_competition():
-    pass
+def get_competition(user, competition_id: UUID, db: Session):
+    competition = (db.query(Competition).join(User)
+                   .join(Competition.id == competition_id, Competition.creator_id == user.id).first())
+
+    if competition is None:
+        raise HTTPError(status_code=400, detail="Competition not found.")
+
+    return competition
 
 
 def update_competition():
