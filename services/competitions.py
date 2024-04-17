@@ -64,14 +64,20 @@ def delete_competition(user, competition_id: UUID, db: Session):
 
 
 def remove_competitor(current_user, user_id, competition_id, db: Session):
-    # removed = db.query(association_table).join(User)
-    pass
+    removed = (db.query(CompetitionUserMapping).join(Competition)
+               .filter(CompetitionUserMapping.user_id == user_id,
+                       Competition.id == competition_id,
+                       Competition.creator_id == current_user.id)).delete()
+    if removed is None:
+        raise HTTPError(status_code=400, detail="Peer is not in the competition.")
+
+    return removed
 
 
 def leave_competition(user, competition_id: UUID, db: Session):
-    deleted = (db.query(association_table)
-               .filter(association_table.user_id == user.id,
-                       association_table.competition_id == competition_id).delete())
+    deleted = (db.query(CompetitionUserMapping)
+               .filter(CompetitionUserMapping.user_id == user.id,
+                       CompetitionUserMapping.competition_id == competition_id).delete())
     if deleted is None:
         raise HTTPError(status_code=400, detail=f"User not in competition: {competition_id}")
     return deleted
@@ -102,9 +108,12 @@ def get_competition(user, competition_id: UUID, db: Session):
     return competition
 
 
+def get_competitors(_, competition_id: UUID, db: Session):
+    competitors = db.query(User).join(Competition).filter(Competition.id == competition_id).all()
+    if competitors is None:
+        raise HTTPError(status_code=400, detail="Competition has no competitors.")
+    return competitors
+
+
 def update_competition():
-    pass
-
-
-def get_competitors():
     pass
