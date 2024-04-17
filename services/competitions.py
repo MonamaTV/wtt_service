@@ -1,9 +1,9 @@
 from datetime import datetime, timedelta
 from typing import List
 from pydantic import EmailStr
-from config.models import Competition, association_table, User
+from config.models import Competition, association_table, User, CompetitionUserMapping
 from sqlalchemy.orm import Session
-from sqlalchemy import insert
+from sqlalchemy import insert, or_
 from config.schemas import CompetitionModel
 from utils.exceptions import validate_wtc_email
 from uuid import UUID
@@ -46,8 +46,10 @@ def create_competition(user, competition: CompetitionModel, db: Session):
 
 
 def get_competitions(user, db: Session):
-    competitions = db.query(Competition).join(User).filter(Competition.creator_id == user.id).all()
+    competitions = (db.query(Competition).join(CompetitionUserMapping)
+                    .filter(or_(Competition.creator_id == user.id, CompetitionUserMapping.user_id == user.id)).all())
     print([user.users for user in competitions])
+    print([u.user for u in competitions])
     if competitions is None:
         raise HTTPError(status_code=400, detail="Competitions not found")
     return competitions
@@ -61,7 +63,8 @@ def delete_competition(user, competition_id: UUID, db: Session):
     return deleted_competition
 
 
-def remove_competitor():
+def remove_competitor(current_user, user_id, competition_id, db: Session):
+    # removed = db.query(association_table).join(User)
     pass
 
 

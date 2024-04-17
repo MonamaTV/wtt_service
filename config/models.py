@@ -15,8 +15,22 @@ association_table = Table(
     Base.metadata,
     Column("user_id", ForeignKey("users.id"), primary_key=True),
     Column("competition_id", ForeignKey("competitions.id"), primary_key=True),
-    Column("score_id", String)
+    Column("score_id", ForeignKey("scores.id"), nullable=True),
 )
+
+class CompetitionUserMapping(Base):
+    __tablename__ = 'competition_user_mapping'
+    __table_args__ = {'extend_existing': True}
+
+    pass
+    user_id: Mapped[UUID] = mapped_column(ForeignKey('users.id'), primary_key=True)
+    competition_id: Mapped[UUID] = mapped_column(ForeignKey('competitions.id'), primary_key=True)
+    score_id: Mapped[int] = mapped_column(ForeignKey('scores.id'), nullable=True)
+    # #
+    # user: Mapped["User"] = relationship(back_populates="user")
+    # competition: Mapped["Competition"] = relationship(back_populates="competitions")
+    # score: Mapped["Score"] = relationship(back_populates="score")
+
 
 
 class Competition(Base):
@@ -30,6 +44,9 @@ class Competition(Base):
     users: Mapped[List["User"]] = relationship(
         secondary=association_table, back_populates="competitions"
     )
+
+    # Relationship
+    user: Mapped["User"] = relationship(back_populates="competitions")
 
 
 class User(Base):
@@ -45,6 +62,7 @@ class User(Base):
 
     # Relationships
     scores: Mapped[List["Score"]] = relationship(back_populates="user")
+    competition_list: Mapped[List["Competition"]] = relationship(back_populates="user")
     competitions: Mapped[List["Competition"]] = relationship(
         secondary=association_table, back_populates="users"
     )
