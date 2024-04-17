@@ -51,7 +51,7 @@ def get_competitions(user, db: Session):
     print([user.users for user in competitions])
     print([u.user for u in competitions])
     if competitions is None:
-        raise HTTPError(status_code=400, detail="Competitions not found")
+        raise HTTPError(status_code=400, detail="Competitions not found.")
     return competitions
 
 
