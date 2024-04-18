@@ -11,6 +11,8 @@ from config.db import get_db
 from utils.exceptions import HTTPError
 from fastapi.exceptions import RequestValidationError
 from config.schemas import CompetitionModel
+from uuid import UUID
+
 
 router = APIRouter(
     prefix="/competitions"
@@ -42,8 +44,8 @@ def get_user_competitions(_: Request,
         raise HTTPError(status_code=400, detail="Failed to get user competitions") from e
 
 
-@router.delete("/{competition_id")
-def delete_user_competition(_: Request, competition_id: str,
+@router.delete("/{competition_id}")
+def delete_user_competition(_: Request, competition_id: UUID,
                             current_user=Depends(get_logged_in_user), db: Session = Depends(get_db)):
     try:
         deleted_competition = delete_competition(current_user, competition_id, db)
