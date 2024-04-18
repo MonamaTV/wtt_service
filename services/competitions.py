@@ -131,4 +131,7 @@ def user_in_competition(curr_user, competition_id: UUID, db: Session):
     if user is None:
         raise HTTPException(detail="User not in the competition.", status_code=400)
 
+    if user.score_id is not None:
+        raise HTTPException(detail="User has already participated in the competition.", status_code=400)
+
     return user

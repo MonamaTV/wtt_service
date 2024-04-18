@@ -25,7 +25,7 @@ class CompetitionUserMapping(Base):
 
     user_id: Mapped[UUID] = mapped_column(ForeignKey('users.id'), primary_key=True)
     competition_id: Mapped[UUID] = mapped_column(ForeignKey('competitions.id'), primary_key=True)
-    # scores: Mapped[List[UUID]] = mapped_column(ForeignKey('scores.id'), nullable=True)
+    score_id: Mapped[Optional[UUID]] = mapped_column(ForeignKey('scores.id'), nullable=True)
     # #
     # user: Mapped["User"] = relationship(back_populates="user")
     # competition: Mapped["Competition"] = relationship(back_populates="competitions")
@@ -65,7 +65,7 @@ class User(Base):
     competition_list: Mapped[List["Competition"]] = relationship(back_populates="user")
     competitions: Mapped[List["Competition"]] = relationship(
         secondary=association_table, back_populates="users",
-        cascade = "all, delete",
+        cascade="all, delete",
     )
 
 
