@@ -1,5 +1,7 @@
 from datetime import datetime, timedelta
 from typing import List
+
+from fastapi import HTTPException
 from pydantic import EmailStr
 from config.models import Competition, association_table, User, CompetitionUserMapping
 from sqlalchemy.orm import Session
@@ -56,8 +58,10 @@ def get_competitions(user, db: Session):
 
 
 def delete_competition(user, competition_id: UUID, db: Session):
-    deleted_competition = db.query(Competition).filter(Competition.creator_id == user.id,
-                                                       Competition.id == competition_id).delete()
+    deleted_competition = (db.query(Competition).filter(Competition.creator_id == user.id,
+                                                        Competition.id == competition_id).delete())
+
+    db.commit()
     if deleted_competition is None:
         raise HTTPError(status_code=400, detail="Competition not found.")
     return deleted_competition
@@ -78,6 +82,8 @@ def leave_competition(user, competition_id: UUID, db: Session):
     deleted = (db.query(CompetitionUserMapping)
                .filter(CompetitionUserMapping.user_id == user.id,
                        CompetitionUserMapping.competition_id == competition_id).delete())
+
+    db.commit()
     if deleted is None:
         raise HTTPError(status_code=400, detail=f"User not in competition: {competition_id}")
     return deleted
@@ -117,3 +123,12 @@ def get_competitors(_, competition_id: UUID, db: Session):
 
 def update_competition():
     pass
+
+
+def user_in_competition(curr_user, competition_id: UUID, db: Session):
+    user = db.query(CompetitionUserMapping).filter(CompetitionUserMapping.user_id == curr_user.id,
+                                                   CompetitionUserMapping.competition_id == competition_id).first()
+    if user is None:
+        raise HTTPException(detail="User not in the competition.", status_code=400)
+
+    return user

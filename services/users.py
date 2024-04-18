@@ -13,7 +13,7 @@ from fastapi.encoders import jsonable_encoder
 from uuid import UUID
 from config.schemas import Register, Login, UserModel
 from datetime import datetime, timedelta
-
+from config.models import CompetitionUserMapping
 
 oauth2 = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
@@ -163,3 +163,5 @@ def get_users_by_email(emails: List[EmailStr], db: Session):
 def get_user_by_email(email: EmailStr, db: Session):
     user = db.query(User).filter(User.email == email).first()
     return user
+
+

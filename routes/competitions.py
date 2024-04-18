@@ -5,14 +5,14 @@ from services.competitions import (
     create_competition,
     get_competitions,
     delete_competition,
-    leave_competition
+    leave_competition,
+    user_in_competition
 )
 from config.db import get_db
 from utils.exceptions import HTTPError
 from fastapi.exceptions import RequestValidationError
 from config.schemas import CompetitionModel
 from uuid import UUID
-
 
 router = APIRouter(
     prefix="/competitions"
@@ -45,20 +45,21 @@ def get_user_competitions(_: Request,
 
 
 @router.delete("/{competition_id}")
-def delete_user_competition(_: Request, competition_id: UUID,
+def delete_user_competition(_: Request, competition_id: str,
                             current_user=Depends(get_logged_in_user), db: Session = Depends(get_db)):
     try:
-        deleted_competition = delete_competition(current_user, competition_id, db)
+        print("Deleting...")
+        deleted_competition = delete_competition(current_user, UUID(competition_id), db)
         return deleted_competition
     except HTTPError as e:
         raise HTTPError(status_code=400, detail=f"Failed to delete competition {competition_id}") from e
 
 
-@router.post("/remove/{competition_id}")
-def leave_competition(_: Request, competition_id: str,
-                      current_user=Depends(get_logged_in_user), db: Session = Depends(get_db)):
+@router.delete("/remove/{competition_id}")
+def exit_competition(_: Request, competition_id: str,
+                     current_user=Depends(get_logged_in_user), db: Session = Depends(get_db)):
     try:
-        left_competition = leave_competition(current_user, competition_id, db)
+        left_competition = leave_competition(current_user, UUID(competition_id), db)
         return left_competition
     except HTTPError as e:
         raise HTTPError(status_code=400, detail="Failed to remove user from competition") from e
@@ -69,6 +70,12 @@ def add_new_competitors():
     pass
 
 
-@router.get("/")
-def get_competition_details():
-    pass
+@router.get("/check/{competition_id}")
+def check_user_competition(_: Request, competition_id: UUID,
+                           current_user=Depends(get_logged_in_user), db: Session = Depends(get_db)):
+    try:
+        user = user_in_competition(current_user, competition_id, db)
+        return user
+    except HTTPError as e:
+        raise HTTPError(status_code=400, detail="User is not in the competition.") from e
+

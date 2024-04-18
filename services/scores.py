@@ -1,9 +1,10 @@
 from config.schemas import ScoreModel
 from sqlalchemy.orm import Session
-from config.models import Score, User
+from config.models import Score, User, CompetitionUserMapping
 from utils.exceptions import HTTPError
 from datetime import datetime
 from sqlalchemy.sql import func
+from uuid import UUID
 
 
 def create_score(user, score: ScoreModel, db: Session):
@@ -54,3 +55,17 @@ def get_scores_by_user(user, query, db: Session):
 def calculate_leaderboard(db: Session):
     results = db.query(Score, func.avg(Score.wpm).label("average")).join(User).all()
     return results
+
+
+def add_competition_score(user, competition_id: UUID, score_id, db: Session):
+    score = db.query(CompetitionUserMapping).filter(CompetitionUserMapping.competition_id == competition_id,
+                                                    CompetitionUserMapping.user_id == user.id).first()
+    if score is None:
+        raise HTTPError(status_code=404, detail="User is not in competition.")
+
+    setattr(score, "score_id", score_id)
+
+    db.commit()
+    db.refresh(score)
+
+    return score
