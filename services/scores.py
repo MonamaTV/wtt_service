@@ -44,17 +44,23 @@ def get_scores_by_user(user, query, db: Session):
                    .limit(query["limit"])
                    .all())
     print([score.user for score in scores_user])
-    some = calculate_leaderboard(db)
-    for user in some:
-        print("User", user[0], user[1])
+
     if scores_user is None:
         raise HTTPError(status_code=404, detail="Could not find users scores")
     return scores_user
 
 
 def calculate_leaderboard(db: Session):
-    results = db.query(Score, func.avg(Score.wpm).label("average")).join(User).all()
-    return results
+    results = (db.query(Score, func.avg(Score.wpm).label("average"),
+                func.avg(Score.accuracy).label("acc"))
+               .join(User)
+               .group_by(User.id)
+               .all())
+    new_results = [
+            {"user": score.user, "accuracy": accuracy, "wpm": wpm, "score": score}
+            for score, accuracy, wpm in results
+        ]
+    return new_results
 
 
 def add_competition_score(user, competition_id: UUID, score_id, db: Session):

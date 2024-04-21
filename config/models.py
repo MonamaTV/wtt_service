@@ -51,6 +51,7 @@ class Competition(Base):
 
 class User(Base):
     __tablename__ = "users"
+    __table_args__ = {'extend_existing': True}
 
     id: Mapped[UUID] = mapped_column(primary_key=True, index=True, default=uuid4())
     email: Mapped[str] = mapped_column(unique=True)
@@ -59,6 +60,7 @@ class User(Base):
     password: Mapped[str]
     active: Mapped[bool] = mapped_column(default=True)
     created_at: Mapped[date] = mapped_column(default=datetime.now())
+    verified: Mapped[bool] = mapped_column(default=False)
 
     # Relationships
     scores: Mapped[List["Score"]] = relationship(back_populates="user")

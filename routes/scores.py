@@ -1,5 +1,11 @@
 from fastapi import APIRouter, Request, Depends
-from services.scores import get_scores_by_user, create_score, ScoreModel, add_competition_score
+from services.scores import (
+    get_scores_by_user,
+    create_score,
+    ScoreModel,
+    add_competition_score,
+    calculate_leaderboard
+)
 from services.users import get_logged_in_user
 from sqlalchemy.orm import Session
 from config.db import get_db
@@ -48,6 +54,16 @@ def add_new_score(_: Request, competition_id: str,
         new_score = create_score(current_user, score, db)
         updated_comp = add_competition_score(current_user, UUID(competition_id), new_score.id, db)
         return updated_comp
+    except NotFound as e:
+        print("Creating score exception")
+        raise HTTPError(status_code=400, detail=str(e))
+
+
+@router.get("/leaderboard")
+def get_scores_leaderboard(_: Request, current_user=Depends(get_logged_in_user), db: Session = Depends(get_db)):
+    try:
+        leaderboard = calculate_leaderboard(db)
+        return leaderboard
     except NotFound as e:
         print("Creating score exception")
         raise HTTPError(status_code=400, detail=str(e))
