@@ -6,7 +6,8 @@ from services.competitions import (
     get_competitions,
     delete_competition,
     leave_competition,
-    user_in_competition
+    user_in_competition,
+    add_competitor
 )
 from config.db import get_db
 from utils.exceptions import HTTPError
@@ -26,6 +27,7 @@ def create_new_competition(_: Request,
                            db: Session = Depends(get_db)):
     try:
         new_competition = create_competition(current_user, competition, db)
+        add_competitor(current_user, current_user.email, new_competition.id, db)
         return new_competition
     except HTTPError as e:
         raise HTTPError(status_code=400, detail=str(e)) from e

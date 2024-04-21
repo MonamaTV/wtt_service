@@ -94,7 +94,7 @@ def add_competitor(curr_user, email: EmailStr, competition_id: UUID, db: Session
     if user is None:
         raise HTTPError(status_code=400, detail=f"User not found")
 
-    competitor = association_table(user_id=user.id, competition_id=competition_id)
+    competitor = CompetitionUserMapping(user_id=user.id, competition_id=competition_id)
     db.add(competitor)
     db.commit()
     return competitor
