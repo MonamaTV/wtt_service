@@ -5,6 +5,7 @@ from utils.exceptions import HTTPError
 from datetime import datetime
 from sqlalchemy.sql import func
 from uuid import UUID
+# from sqlalchemy.orm import aliased
 
 
 def create_score(user, score: ScoreModel, db: Session):
@@ -52,7 +53,7 @@ def get_scores_by_user(user, query, db: Session):
 
 def calculate_leaderboard(db: Session):
     results = (db.query(Score, func.avg(Score.wpm).label("average"),
-                func.avg(Score.accuracy).label("acc"))
+               func.avg(Score.accuracy).label("acc"))
                .join(User)
                .group_by(User.id)
                .all())
