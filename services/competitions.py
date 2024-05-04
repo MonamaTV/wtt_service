@@ -3,7 +3,7 @@ from typing import List
 
 from fastapi import HTTPException
 from pydantic import EmailStr
-from config.models import Competition, association_table, User, CompetitionUserMapping
+from config.models import Competition, association_table, User, CompetitionUserMapping, Score
 from sqlalchemy.orm import Session
 from sqlalchemy import insert, or_
 from config.schemas import CompetitionModel
@@ -135,3 +135,32 @@ def user_in_competition(curr_user, competition_id: UUID, db: Session):
         raise HTTPException(detail="User has already participated in the competition.", status_code=400)
 
     return user
+
+
+def competition_details(current_user, competition_id: UUID, db: Session):
+    details = (db.query(CompetitionUserMapping).join(Competition).join(User)
+               .filter(CompetitionUserMapping.competition_id == competition_id)).all()
+
+
+
+    if details is None:
+        raise HTTPException(detail="No competition info at the moment.", status_code=400)
+
+    unpacked = ([{"user": detail.user, "score": detail.score, "competition_id": detail.competition_id }
+                 for detail in details])
+
+    return unpacked
+
+
+def competition_information(current_user, competition_id: UUID, db: Session):
+    information = db.query(Competition).join(User).filter(Competition.id == competition_id).first()
+
+    if information is None:
+        raise HTTPException(detail="No competition info at the moment.", status_code=400)
+
+    print(information.user)
+
+    return information
+
+
+

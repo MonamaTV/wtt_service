@@ -27,9 +27,9 @@ class CompetitionUserMapping(Base):
     competition_id: Mapped[UUID] = mapped_column(ForeignKey('competitions.id'), primary_key=True)
     score_id: Mapped[Optional[UUID]] = mapped_column(ForeignKey('scores.id'), nullable=True)
     # #
-    # user: Mapped["User"] = relationship(back_populates="user")
-    # competition: Mapped["Competition"] = relationship(back_populates="competitions")
-    # score: Mapped["Score"] = relationship(back_populates="score")
+    user: Mapped["User"] = relationship(back_populates="user", viewonly=True)
+    # competition_details: Mapped["Competition"] = relationship(back_populates="competition_details")
+    score: Mapped["Score"] = relationship(back_populates="score")
 
 
 class Competition(Base):
@@ -48,6 +48,8 @@ class Competition(Base):
 
     # Relationship
     user: Mapped["User"] = relationship(back_populates="competitions")
+    # competition_details: Mapped["CompetitionUserMapping"] = relationship(back_populates="competition_info")
+    # comp: Mapped["CompetitionUserMapping"] = relationship("user")
 
 
 class User(Base):
@@ -66,10 +68,12 @@ class User(Base):
     # Relationships
     scores: Mapped[List["Score"]] = relationship(back_populates="user")
     competition_list: Mapped[List["Competition"]] = relationship(back_populates="user")
+    # in_competition: Mapped["CompetitionUserMapping"] = relationship(back_populates="in_competition")
     competitions: Mapped[List["Competition"]] = relationship(
         secondary=association_table, back_populates="users",
         cascade="all, delete",
     )
+    user: Mapped["CompetitionUserMapping"] = relationship(back_populates="user")
 
 
 class Score(Base):
@@ -87,6 +91,7 @@ class Score(Base):
 
     # Relationship
     user: Mapped["User"] = relationship(back_populates="scores")
+    score: Mapped["CompetitionUserMapping"] = relationship(back_populates="score")
 
 
 class Settings(Base):

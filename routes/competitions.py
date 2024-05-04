@@ -7,7 +7,9 @@ from services.competitions import (
     delete_competition,
     leave_competition,
     user_in_competition,
-    add_competitor
+    add_competitor,
+    competition_details,
+    competition_information
 )
 from config.db import get_db
 from utils.exceptions import HTTPError
@@ -50,7 +52,6 @@ def get_user_competitions(_: Request,
 def delete_user_competition(_: Request, competition_id: str,
                             current_user=Depends(get_logged_in_user), db: Session = Depends(get_db)):
     try:
-        print("Deleting...")
         deleted_competition = delete_competition(current_user, UUID(competition_id), db)
         return deleted_competition
     except HTTPError as e:
@@ -81,3 +82,22 @@ def check_user_competition(_: Request, competition_id: UUID,
     except HTTPError as e:
         raise HTTPError(status_code=400, detail="User is not in the competition.") from e
 
+
+@router.get("/{competition_id}")
+def get_competition_details(_: Request, competition_id: UUID,
+                            current_user=Depends(get_logged_in_user), db: Session = Depends(get_db)):
+    try:
+        details = competition_details(current_user, competition_id, db)
+        return details
+    except HTTPError as e:
+        raise HTTPError(status_code=400, detail="Error fetching competition details.") from e
+
+
+@router.get("/info/{competition_id}")
+def get_competition_information(_: Request, competition_id: UUID,
+                            current_user=Depends(get_logged_in_user), db: Session = Depends(get_db)):
+    try:
+        information = competition_information(current_user, competition_id, db)
+        return information
+    except HTTPError as e:
+        raise HTTPError(status_code=400, detail="Error fetching competition details.") from e
