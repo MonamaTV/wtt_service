@@ -126,10 +126,11 @@ def update_competition():
 
 
 def user_in_competition(curr_user, competition_id: UUID, db: Session):
-    user = db.query(CompetitionUserMapping).filter(CompetitionUserMapping.user_id == curr_user.id,
-                                                   CompetitionUserMapping.competition_id == competition_id).first()
+    user = db.query(CompetitionUserMapping).join(Competition).filter(CompetitionUserMapping.user_id == curr_user.id,
+                                                                     CompetitionUserMapping.competition_id == competition_id,
+                                                                     Competition.expires_in > datetime.now()).first()
     if user is None:
-        raise HTTPException(detail="User not in the competition.", status_code=400)
+        raise HTTPException(detail="Competing in this competition is no longer valid.", status_code=400)
 
     if user.score_id is not None:
         raise HTTPException(detail="User has already participated in the competition.", status_code=400)
@@ -141,12 +142,10 @@ def competition_details(current_user, competition_id: UUID, db: Session):
     details = (db.query(CompetitionUserMapping).join(Competition).join(User)
                .filter(CompetitionUserMapping.competition_id == competition_id)).all()
 
-
-
     if details is None:
         raise HTTPException(detail="No competition info at the moment.", status_code=400)
 
-    unpacked = ([{"user": detail.user, "score": detail.score, "competition_id": detail.competition_id }
+    unpacked = ([{"user": detail.user, "score": detail.score, "competition_id": detail.competition_id}
                  for detail in details])
 
     return unpacked
@@ -161,6 +160,3 @@ def competition_information(current_user, competition_id: UUID, db: Session):
     print(information.user)
 
     return information
-
-
-
