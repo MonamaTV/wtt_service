@@ -21,12 +21,14 @@ router = APIRouter(
 @router.get("/")
 def get_user_scores(_: Request, limit: int = 10,
                     sort: int = 1,
+                    page: int = 1,
                     current_user=Depends(get_logged_in_user),
                     db: Session = Depends(get_db)):
     try:
         query = {
             "limit": limit,
-            "sort": sort
+            "sort": sort,
+            "page": page
         }
         scores = get_scores_by_user(current_user, query, db)
         return scores
@@ -37,7 +39,6 @@ def get_user_scores(_: Request, limit: int = 10,
 @router.post("/")
 def add_new_score(_: Request, score: ScoreModel, current_user=Depends(get_logged_in_user), db: Session = Depends(get_db)):
     try:
-        print("Before Creating score")
 
         new_score = create_score(current_user, score, db)
         return new_score
