@@ -23,6 +23,7 @@ class Login(BaseModel):
 class UserModel(BaseModel):
     first_name: Optional[str] = None
     last_name: Optional[str] = None
+    bio: Optional[str] = None
 
 
 class Register(UserModel):

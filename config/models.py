@@ -64,7 +64,7 @@ class User(Base):
     active: Mapped[bool] = mapped_column(default=True)
     created_at: Mapped[date] = mapped_column(default=datetime.now())
     verified: Mapped[bool] = mapped_column(default=False)
-
+    bio: Mapped[Optional[str]]
     # Relationships
     scores: Mapped[List["Score"]] = relationship(back_populates="user")
     competition_list: Mapped[List["Competition"]] = relationship(back_populates="user")
