@@ -1,7 +1,8 @@
 from pydantic import EmailStr
 from sqlalchemy.orm import Session
-from config.models import User
-from utils.exceptions import NotFound
+from config.models import User, Score
+from services.scores import get_sort
+from utils.exceptions import NotFound, HTTPError
 from config.db import get_db
 from utils.password import verify_password, hash_password
 from typing import Annotated, Dict, List
@@ -163,5 +164,19 @@ def get_users_by_email(emails: List[EmailStr], db: Session):
 def get_user_by_email(email: EmailStr, db: Session):
     user = db.query(User).filter(User.email == email).first()
     return user
+
+
+def get_user_stats(user_name: str, db: Session):
+    user_email = user_name.lower() + "@student.wethinkcode.co.za"
+    scores_user = (db.query(Score).join(User)
+                   .filter(User.email == user_email)
+                   .order_by(Score.played_at)
+                   .limit(10)
+                   .all())
+    print([score.user for score in scores_user])
+
+    if scores_user is None:
+        raise HTTPError(status_code=404, detail="Could not find users scores")
+    return scores_user
 
 

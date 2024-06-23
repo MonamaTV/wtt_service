@@ -42,7 +42,7 @@ def get_scores_by_user(user, query, db: Session):
     scores_user = (db.query(Score).join(User)
                    .filter(User.id == user.id)
                    .order_by(get_sort(query["sort"]))
-                    .offset((query["page"] - 1) * query["limit"])
+                   .offset((query["page"] - 1) * query["limit"])
                    .limit(query["limit"])
                    .all())
     print([score.user for score in scores_user])
