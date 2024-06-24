@@ -35,7 +35,7 @@ class CompetitionUserMapping(Base):
 class Competition(Base):
     __tablename__ = "competitions"
 
-    id: Mapped[UUID] = mapped_column(primary_key=True, index=True, default=uuid4())
+    id: Mapped[UUID] = mapped_column(primary_key=True, index=True, default=uuid4)
     creator_id: Mapped[UUID] = mapped_column(ForeignKey("users.id"))
     # winner: Mapped[UUID] = mapped_column(ForeignKey("users.id"), nullable=True)
     name: Mapped[Optional[str]]
