@@ -5,7 +5,6 @@ from utils.exceptions import HTTPError
 from datetime import datetime
 from sqlalchemy.sql import func
 from uuid import UUID
-# from sqlalchemy.orm import aliased
 
 
 def create_score(user, score: ScoreModel, db: Session):

@@ -56,7 +56,7 @@ class User(Base):
     __tablename__ = "users"
     __table_args__ = {'extend_existing': True}
 
-    id: Mapped[UUID] = mapped_column(primary_key=True, index=True, default=uuid4())
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     email: Mapped[str] = mapped_column(unique=True)
     first_name: Mapped[Optional[str]]
     last_name: Mapped[Optional[str]]

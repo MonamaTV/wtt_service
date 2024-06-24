@@ -1,7 +1,6 @@
 from pydantic import EmailStr
 from sqlalchemy.orm import Session
 from config.models import User, Score
-from services.scores import get_sort
 from utils.exceptions import NotFound, HTTPError
 from config.db import get_db
 from utils.password import verify_password, hash_password
@@ -11,10 +10,8 @@ from fastapi import Depends, HTTPException
 from jose import jwt, JWTError
 from os import getenv
 from fastapi.encoders import jsonable_encoder
-from uuid import UUID
 from config.schemas import Register, Login, UserModel
 from datetime import datetime, timedelta
-from config.models import CompetitionUserMapping
 
 oauth2 = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
@@ -102,7 +99,7 @@ def get_user(decoded_token: Dict[str, any], db: Session):
     user_id, email = decoded_token.get("user_id"), decoded_token.get("email")
 
     user = db.query(User).filter(
-        User.email == email, User.id == UUID(user_id)).first()
+        User.email == email, User.id == user_id).first()
     if user is None:
         raise credentials_exception
     return user
@@ -121,7 +118,7 @@ def get_logged_in_user(token: Annotated[str, Depends(oauth2)], db: Session = Dep
         raise credentials_exception
 
     user = db.query(User).filter(
-        User.email == email, User.id == UUID(user_id)).first()
+        User.email == email, User.id == user_id).first()
 
     if user is None:
         raise credentials_exception
