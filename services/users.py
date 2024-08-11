@@ -4,6 +4,7 @@ from config.models import User, Score
 from utils.exceptions import NotFound, HTTPError
 from config.db import get_db
 from utils.password import verify_password, hash_password
+from utils.sending import *
 from typing import Annotated, Dict, List
 from fastapi.security import OAuth2PasswordBearer
 from fastapi import Depends, HTTPException
@@ -14,6 +15,13 @@ from config.schemas import Register, Login, UserModel
 from datetime import datetime, timedelta
 
 oauth2 = OAuth2PasswordBearer(tokenUrl="/auth/login")
+
+
+def create_user_verify_token(user_data: Dict):
+    to_encode = user_data.copy()
+    encoded_token = jwt.encode(to_encode, getenv(
+        "VERIFY_KEY"), algorithm=getenv("HASH_ALGO"))
+    return encoded_token
 
 
 def create_user(user: Register, db: Session):
@@ -47,6 +55,12 @@ def create_user(user: Register, db: Session):
     db.add(new_user)
     db.commit()
 
+    token = create_user_verify_token({
+        "email": user.email,
+        "user_id": new_user.id
+    })
+    send_email(user.email, email_split[0], token)
+
     return new_user
 
 
@@ -56,6 +70,8 @@ def authenticate_user(login: Login, db: Session):
         raise NotFound("User does not exist.")
     if not verify_password(user.password, login.password):
         raise NotFound("Email or password is incorrect.")
+    if user.verified is False:
+        raise NotFound("You must verify your account first. Check emails.")
 
     token = create_user_access_token({
         "email": user.email,
@@ -118,7 +134,7 @@ def get_logged_in_user(token: Annotated[str, Depends(oauth2)], db: Session = Dep
         raise credentials_exception
 
     user = db.query(User).filter(
-        User.email == email, User.id == user_id).first()
+        User.email == email, User.id == user_id, User.verified == True).first()
 
     if user is None:
         raise credentials_exception
@@ -149,6 +165,39 @@ def update_user(user, new_details: UserModel, db: Session):
     return user_to_update
 
 
+def verify_user(token: str, db: Session):
+    exception = HTTPException(
+        status_code=400,
+        detail="Failed to verify user",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+
+    try:
+        decoded_token = jwt.decode(token, getenv("VERIFY_KEY"), algorithms=[getenv("HASH_ALGO")])
+        user_id, email = decoded_token.get("user_id"), decoded_token.get("email")
+    except JWTError as e:
+        raise exception
+
+    user_to_verify = db.query(User).filter(
+        User.email == email, User.id == user_id
+    ).first()
+
+    if user_to_verify is None:
+        raise exception
+
+    setattr(user_to_verify, "verified", True)
+
+    # Commit the updates
+    db.commit()
+    db.refresh(user_to_verify)
+
+    token = create_user_access_token({
+        "email": user_to_verify.email,
+        "user_id": jsonable_encoder(user_to_verify.id)
+    })
+    return token
+
+
 def deactivate_user():
     pass
 
@@ -175,5 +224,3 @@ def get_user_stats(user_name: str, db: Session):
     if scores_user is None:
         raise HTTPError(status_code=404, detail="Could not find users scores")
     return scores_user
-
-

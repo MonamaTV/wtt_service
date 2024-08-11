@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Request, Depends
 from sqlalchemy.orm import Session
 from config.db import get_db
-from services.users import get_logged_in_user, get_user, get_user_token, update_user, get_user_stats, get_user_by_email
-from config.schemas import UserModel
+from services.users import get_logged_in_user, verify_user, get_user, get_user_token, update_user, get_user_stats, get_user_by_email
+from config.schemas import UserModel, Token
 from typing import Dict
 from utils.exceptions import NotFound, HTTPError
 
@@ -15,6 +15,20 @@ router = APIRouter(
 def get_user_details(_: Request, current_user=Depends(get_logged_in_user)):
     try:
         return current_user
+    except NotFound as e:
+        raise HTTPError(status_code=401, detail=str(e)) from e
+
+
+@router.post("/verify")
+def verify(_: Request, token: Token, db: Session = Depends(get_db)):
+    try:
+        print(token.token)
+        access_token = verify_user(token.token, db)
+        return {
+            "access_token": access_token,
+            "token_type": "bearer",
+            "success": True
+        }
     except NotFound as e:
         raise HTTPError(status_code=401, detail=str(e)) from e
 

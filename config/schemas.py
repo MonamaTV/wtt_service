@@ -35,3 +35,6 @@ class Register(UserModel):
 class CompetitionModel(BaseModel):
     name: str = Field(min_length=2)
     competitors: List[EmailStr]
+
+class Token(BaseModel):
+    token: str
