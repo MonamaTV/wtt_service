@@ -156,7 +156,8 @@ def update_user(user, new_details: UserModel, db: Session):
         raise exception
 
     for key, value in new_details.model_dump(exclude_none=True).items():
-        setattr(user_to_update, key, value)
+        if value:
+            setattr(user_to_update, key, value)
 
     # Commit the updates
     db.commit()

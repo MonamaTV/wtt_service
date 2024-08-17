@@ -31,7 +31,7 @@ def create_competition(user, competition: CompetitionModel, db: Session):
 
     users = get_users_by_email(competition.competitors, db)
     if len(users) == 0:
-        raise HTTPError(status_code=400, detail="Peer(s) not found.")
+        raise HTTPError(status_code=404, detail="Peer(s) not found.")
 
     db.add(new_competition)
 
