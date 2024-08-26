@@ -20,7 +20,7 @@ def send_email(to_email, to_name, token):
     recipients = [
         {
             "name": to_name,
-            "email": "tmonama023@student.wethinkcode.co.za",
+            "email": to_email,
         }
     ]
 
