@@ -95,7 +95,7 @@ def get_competition_details(_: Request, competition_id: UUID,
 
 @router.get("/info/{competition_id}")
 def get_competition_information(_: Request, competition_id: UUID,
-                            current_user=Depends(get_logged_in_user), db: Session = Depends(get_db)):
+                                current_user=Depends(get_logged_in_user), db: Session = Depends(get_db)):
     try:
         information = competition_information(current_user, competition_id, db)
         return information

@@ -45,7 +45,7 @@ class Competition(Base):
         secondary=association_table, back_populates="competitions",
         passive_deletes=True,
     )
-
+    rounds: Mapped[int] = mapped_column(default=5)
     # Relationship
     user: Mapped["User"] = relationship(back_populates="competitions")
     # competition_details: Mapped["CompetitionUserMapping"] = relationship(back_populates="competition_info")

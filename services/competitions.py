@@ -22,7 +22,7 @@ def create_competition(user, competition: CompetitionModel, db: Session):
     data = {
         **competition.model_dump(exclude_none=True),
         "creator_id": user.id,
-        "expires_in": datetime.utcnow() + timedelta(days=5)
+        "expires_in": datetime.utcnow() + timedelta(days=30)
     }
 
     del data["competitors"]
