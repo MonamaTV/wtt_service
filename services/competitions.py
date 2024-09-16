@@ -3,7 +3,7 @@ from typing import List
 
 from fastapi import HTTPException
 from pydantic import EmailStr
-from config.models import Competition, association_table, User, CompetitionUserMapping, Score
+from config.models import Competition, association_table, User, CompetitionUserMapping, Score, CompetitionUsers
 from sqlalchemy.orm import Session
 from sqlalchemy import insert, or_
 from config.schemas import CompetitionModel
@@ -39,7 +39,7 @@ def create_competition(user, competition: CompetitionModel, db: Session):
     print([{"user_id": user.id, "competition_id": new_competition.id}
            for user in users])
     # Add the competitors now after creating a competition...
-    db.execute(insert(association_table),
+    db.execute(insert(CompetitionUsers),
                [{"user_id": user.id, "competition_id": new_competition.id}
                 for user in users])
     db.commit()
@@ -94,7 +94,7 @@ def add_competitor(curr_user, email: EmailStr, competition_id: UUID, db: Session
     if user is None:
         raise HTTPError(status_code=400, detail=f"User not found")
 
-    competitor = CompetitionUserMapping(user_id=user.id, competition_id=competition_id)
+    competitor = CompetitionUsers(user_id=user.id, competition_id=competition_id)
     db.add(competitor)
     db.commit()
     return competitor
@@ -126,9 +126,13 @@ def update_competition():
 
 
 def user_in_competition(curr_user, competition_id: UUID, db: Session):
-    user = db.query(CompetitionUserMapping).join(Competition).filter(CompetitionUserMapping.user_id == curr_user.id,
-                                                                     CompetitionUserMapping.competition_id == competition_id,
-                                                                     Competition.expires_in > datetime.now()).first()
+    games_played = db.query(CompetitionUserMapping).filter(CompetitionUserMapping.competition_id == competition_id,
+                                                           CompetitionUserMapping.user_id == curr_user.id).all()
+
+    user = db.query(CompetitionUsers).join(Competition).filter(CompetitionUsers.user_id == curr_user.id,
+                                                               CompetitionUsers.competition_id == competition_id,
+                                                               Competition.rounds > len(games_played),
+                                                               Competition.expires_in > datetime.now()).first()
     if user is None:
         raise HTTPException(detail="Competing in this competition is no longer valid.", status_code=400)
 
