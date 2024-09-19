@@ -143,7 +143,8 @@ def user_in_competition(curr_user, competition_id: UUID, db: Session):
 
 
 def competition_details(current_user, competition_id: UUID, db: Session):
-    details = db.query(Competition).join(CompetitionUsers).join(User).filter(CompetitionUsers.competition_id == competition_id).all()
+    details = db.query(Competition).join(CompetitionUserMapping).join(CompetitionUsers).join(User).filter(
+        CompetitionUsers.competition_id == competition_id).all()
 
     if details is None:
         raise HTTPException(detail="No competition info at the moment.", status_code=400)
@@ -163,3 +164,11 @@ def competition_information(current_user, competition_id: UUID, db: Session):
     print(information.user)
 
     return information
+
+
+def get_competitor_list(curr_user, competition_id: UUID, db: Session):
+    competitor_list = db.query(User).join(CompetitionUsers).filter(CompetitionUsers.competition_id == competition_id).all()
+    if competitor_list is None:
+        raise HTTPException(status_code=400, detail="Competition has no competitors.")
+
+    return competitor_list

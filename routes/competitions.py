@@ -9,7 +9,8 @@ from services.competitions import (
     user_in_competition,
     add_competitor,
     competition_details,
-    competition_information
+    competition_information,
+    get_competitor_list
 )
 from config.db import get_db
 from utils.exceptions import HTTPError
@@ -101,3 +102,13 @@ def get_competition_information(_: Request, competition_id: UUID,
         return information
     except HTTPError as e:
         raise HTTPError(status_code=400, detail="Error fetching competition details.") from e
+
+
+@router.get("/{competition_id}/competitors")
+def get_competitors(_: Request, competition_id: UUID, current_user=Depends(get_logged_in_user),
+                    db: Session = Depends(get_db)):
+    try:
+        competitors = get_competitor_list(current_user, competition_id, db)
+        return competitors
+    except HTTPError as e:
+        raise HTTPError(status_code=400, detail="Error fetching competitor details.") from e
