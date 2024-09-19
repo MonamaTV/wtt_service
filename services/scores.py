@@ -1,6 +1,7 @@
 from config.schemas import ScoreModel
 from sqlalchemy.orm import Session
-from config.models import Score, User, CompetitionUserMapping
+from config.models import Score, User, CompetitionUserMapping, CompetitionUsers
+from services.competitions import user_in_competition
 from utils.exceptions import HTTPError
 from datetime import datetime
 from sqlalchemy.sql import func
@@ -53,26 +54,37 @@ def get_scores_by_user(user, query, db: Session):
 
 def calculate_leaderboard(db: Session):
     results = (db.query(Score, func.avg(Score.wpm).label("average"),
-               func.avg(Score.accuracy).label("acc"))
+                        func.avg(Score.accuracy).label("acc"))
                .join(User)
                .group_by(User.id)
                .all())
     new_results = [
-            {"user": score.user, "accuracy": accuracy, "wpm": wpm, "score": score}
-            for score, accuracy, wpm in results
-        ]
+        {"user": score.user, "accuracy": accuracy, "wpm": wpm, "score": score}
+        for score, accuracy, wpm in results
+    ]
     return new_results
 
 
 def add_competition_score(user, competition_id: UUID, score_id, db: Session):
-    score = db.query(CompetitionUserMapping).filter(CompetitionUserMapping.competition_id == competition_id,
-                                                    CompetitionUserMapping.user_id == user.id).first()
+
+    if user_in_competition(user, competition_id, db) is None:
+        print("In here")
+        raise HTTPError(status_code=400, detail="No longer active to participate")
+
+    score = db.query(CompetitionUsers).filter(CompetitionUsers.competition_id == competition_id,
+                                              CompetitionUsers.user_id == user.id).first()
     if score is None:
         raise HTTPError(status_code=404, detail="User is not in competition.")
 
     setattr(score, "score_id", score_id)
 
+    score_with_details = {
+        "user_id": user.id,
+        "competition_id": competition_id,
+        "score_id": score_id,
+    }
+    new_score = CompetitionUserMapping(**score_with_details)
+    db.add(new_score)
     db.commit()
-    db.refresh(score)
 
     return score

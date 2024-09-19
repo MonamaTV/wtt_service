@@ -136,22 +136,19 @@ def user_in_competition(curr_user, competition_id: UUID, db: Session):
     if user is None:
         raise HTTPException(detail="Competing in this competition is no longer valid.", status_code=400)
 
-    # if user.score_id is not None:
-    #     raise HTTPException(detail="User has already participated in the competition.", status_code=400)
-
     return user
 
 
 def competition_details(current_user, competition_id: UUID, db: Session):
-    details = db.query(Competition).join(CompetitionUserMapping).join(CompetitionUsers).join(User).filter(
-        CompetitionUsers.competition_id == competition_id).all()
+    details = db.query(CompetitionUserMapping).join(Competition).filter(
+        CompetitionUserMapping.competition_id == competition_id).all()
 
     if details is None:
         raise HTTPException(detail="No competition info at the moment.", status_code=400)
 
-    unpacked = ([{"user": detail.user, "score": detail.user.scores, "competition_id": detail.id}
+    unpacked = ([{"user": detail.user, "score": detail.score, "competition_id": detail.competition_id}
                  for detail in details])
-    print(details)
+
     return unpacked
 
 
