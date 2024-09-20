@@ -34,7 +34,7 @@ class Register(UserModel):
 
 class CompetitionModel(BaseModel):
     name: str = Field(min_length=2)
-    rounds: int = Field(default=5)
+    rounds: int = Field(default=5, gt=1)
     competitors: List[EmailStr]
 
 
