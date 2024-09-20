@@ -4,3 +4,4 @@ typing.db
 /.mypy_cache
 /.idea
 __pycache__
+*.pyc
