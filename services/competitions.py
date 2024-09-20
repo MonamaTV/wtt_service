@@ -79,9 +79,9 @@ def remove_competitor(current_user, user_id, competition_id, db: Session):
 
 
 def leave_competition(user, competition_id: UUID, db: Session):
-    deleted = (db.query(CompetitionUserMapping)
-               .filter(CompetitionUserMapping.user_id == user.id,
-                       CompetitionUserMapping.competition_id == competition_id).delete())
+    deleted = (db.query(CompetitionUsers)
+               .filter(CompetitionUsers.user_id == user.id,
+                       CompetitionUsers.competition_id == competition_id).delete())
 
     db.commit()
     if deleted is None:
