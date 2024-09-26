@@ -46,9 +46,9 @@ def create_user(user: Register, db: Session):
         raise exception
 
     hashed_password = hash_password(user.password)
-
+    # TODO: Remove the verified field, and uncomment back the send email part
     updated_user = {
-        **user.model_dump(exclude_none=True), "password": hashed_password}
+        **user.model_dump(exclude_none=True), "password": hashed_password, "verified": True}
     del updated_user["confirm_password"]
 
     new_user = User(**updated_user)
@@ -59,7 +59,7 @@ def create_user(user: Register, db: Session):
         "email": user.email,
         "user_id": new_user.id
     })
-    send_email(user.email, email_split[0], token)
+    # send_email(user.email, email_split[0], token)
 
     return new_user
 

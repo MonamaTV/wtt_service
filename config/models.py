@@ -12,32 +12,30 @@ class Base(DeclarativeBase):
 
 association_table = Table(
     "competition_user_mapping",
-    Base.metadata,
-    Column("user_id", ForeignKey("users.id", ondelete="CASCADE"), primary_key=True),
-    Column("competition_id", ForeignKey("competitions.id", ondelete="CASCADE"), primary_key=True),
-    Column("score_id", ForeignKey("scores.id"), nullable=True),
+    Base.metadata, Column("competition_user_id", primary_key=True, default=uuid4),
+    Column("user_id", ForeignKey("users.id", ondelete="CASCADE")),
+    Column("competition_id", ForeignKey("competitions.id", ondelete="CASCADE")),
+    Column("score_id", ForeignKey("scores.id"), nullable=False),
 )
 
 
 class CompetitionUserMapping(Base):
     __tablename__ = 'competition_user_mapping'
     __table_args__ = {'extend_existing': True}
-
-    user_id: Mapped[UUID] = mapped_column(ForeignKey('users.id'), primary_key=True)
-    competition_id: Mapped[UUID] = mapped_column(ForeignKey('competitions.id'), primary_key=True)
-    score_id: Mapped[Optional[UUID]] = mapped_column(ForeignKey('scores.id'), nullable=True)
-    # #
+    competition_user_id: Mapped[UUID] = mapped_column(primary_key=True, index=True, default=uuid4)
+    user_id: Mapped[UUID] = mapped_column(ForeignKey('users.id'))
+    competition_id: Mapped[UUID] = mapped_column(ForeignKey('competitions.id'))
+    score_id: Mapped[UUID] = mapped_column(ForeignKey('scores.id'), nullable=False)
     user: Mapped["User"] = relationship(back_populates="user", viewonly=True)
-    # competition_details: Mapped["Competition"] = relationship(back_populates="competition_details")
     score: Mapped["Score"] = relationship(back_populates="score")
 
 
+# This table stores the score recorded for user's competitions
 class Competition(Base):
     __tablename__ = "competitions"
 
     id: Mapped[UUID] = mapped_column(primary_key=True, index=True, default=uuid4)
     creator_id: Mapped[UUID] = mapped_column(ForeignKey("users.id"))
-    # winner: Mapped[UUID] = mapped_column(ForeignKey("users.id"), nullable=True)
     name: Mapped[Optional[str]]
     created_at: Mapped[Optional[date]] = mapped_column(default=datetime.now())
     expires_in: Mapped[date]
@@ -45,11 +43,9 @@ class Competition(Base):
         secondary=association_table, back_populates="competitions",
         passive_deletes=True,
     )
-
+    rounds: Mapped[int] = mapped_column(default=5)
     # Relationship
     user: Mapped["User"] = relationship(back_populates="competitions")
-    # competition_details: Mapped["CompetitionUserMapping"] = relationship(back_populates="competition_info")
-    # comp: Mapped["CompetitionUserMapping"] = relationship("user")
 
 
 class User(Base):
@@ -68,7 +64,6 @@ class User(Base):
     # Relationships
     scores: Mapped[List["Score"]] = relationship(back_populates="user")
     competition_list: Mapped[List["Competition"]] = relationship(back_populates="user")
-    # in_competition: Mapped["CompetitionUserMapping"] = relationship(back_populates="in_competition")
     competitions: Mapped[List["Competition"]] = relationship(
         secondary=association_table, back_populates="users",
         cascade="all, delete",
@@ -88,7 +83,6 @@ class Score(Base):
     duration: Mapped[int]
     characters: Mapped[int]
     completed: Mapped[bool]
-
     # Relationship
     user: Mapped["User"] = relationship(back_populates="scores")
     score: Mapped["CompetitionUserMapping"] = relationship(back_populates="score")
@@ -96,10 +90,17 @@ class Score(Base):
 
 class Settings(Base):
     __tablename__ = "settings"
-
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
     difficulty_level: Mapped[str]
     theme: Mapped[str]
+
+
+# This table stores the users that are allowed to compete
+class CompetitionUsers(Base):
+    __tablename__ = "competition_users"
+    id: Mapped[int] = mapped_column(primary_key=True, index=True, autoincrement=True)
+    competition_id: Mapped[UUID] = mapped_column(ForeignKey("competitions.id"))
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
 
 
 class Leaderboard(Base):
