@@ -32,11 +32,11 @@ def create_user(user: Register, db: Session):
     )
     # Verify a wethinkcode email.
     email_split = user.email.split("@")
-    if email_split[1].lower() != "student.wethinkcode.co.za":
-        raise HTTPException(status_code=400, detail="Invalid WeThinkCode email")
-
-    if email_split[0][-3:] != "023":
-        raise HTTPException(status_code=400, detail=f"Cohort {email_split[0][-3:]} not permitted")
+    # if email_split[1].lower() != "student.wethinkcode.co.za":
+    #     raise HTTPException(status_code=400, detail="Invalid WeThinkCode email")
+    # 
+    # if email_split[0][-3:] != "023":
+    #     raise HTTPException(status_code=400, detail=f"Cohort {email_split[0][-3:]} not permitted")
 
     db_user = db.query(User).filter(User.email == user.email).first()
     if db_user:
@@ -48,7 +48,7 @@ def create_user(user: Register, db: Session):
     hashed_password = hash_password(user.password)
     # TODO: Remove the verified field, and uncomment back the send email part
     updated_user = {
-        **user.model_dump(exclude_none=True), "password": hashed_password}
+            **user.model_dump(exclude_none=True), "password": hashed_password, "verified": True}
     del updated_user["confirm_password"]
 
     new_user = User(**updated_user)
@@ -59,7 +59,8 @@ def create_user(user: Register, db: Session):
         "email": user.email,
         "user_id": new_user.id
     })
-    send_email(user.email, email_split[0], token)
+    #Todo: Find a good email service
+    # send_email(user.email, email_split[0], token)
 
     return new_user
 
@@ -70,8 +71,8 @@ def authenticate_user(login: Login, db: Session):
         raise NotFound("User does not exist.")
     if not verify_password(user.password, login.password):
         raise NotFound("Email or password is incorrect.")
-    if user.verified is False:
-        raise NotFound("You must verify your account first. Check emails.")
+    # if user.verified is False:
+    #     raise NotFound("You must verify your account first. Check emails.")
 
     token = create_user_access_token({
         "email": user.email,
@@ -214,7 +215,7 @@ def get_user_by_email(email: EmailStr, db: Session):
 
 
 def get_user_stats(user_name: str, db: Session):
-    user_email = user_name.lower() + "@student.wethinkcode.co.za"
+    user_email = user_name.lower() + "@gmail.com"
     scores_user = (db.query(Score).join(User)
                    .filter(User.email == user_email)
                    .order_by(Score.played_at)
