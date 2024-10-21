@@ -50,7 +50,7 @@ def create_user(user: Register, db: Session):
     hashed_password = hash_password(user.password)
     # TODO: Remove the verified field, and uncomment back the send email part
     updated_user = {
-            **user.model_dump(exclude_none=True), "password": hashed_password, "verified": True}
+            **user.model_dump(exclude_none=True), "password": hashed_password}
     del updated_user["confirm_password"]
 
     new_user = User(**updated_user)
@@ -137,7 +137,7 @@ def get_logged_in_user(token: Annotated[str, Depends(oauth2)], db: Session = Dep
         raise credentials_exception
 
     user = db.query(User).filter(
-        User.email == email, User.id == user_id, User.verified == True).first()
+        User.email == email, User.id == user_id).first()
 
     if user is None:
         raise credentials_exception

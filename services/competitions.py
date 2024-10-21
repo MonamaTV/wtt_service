@@ -19,6 +19,10 @@ def create_competition(user, competition: CompetitionModel, db: Session):
 
     # [validate_wtc_email(email) for email in competition.competitors]
 
+    users = [email for email in competition.competitors if email.lower() == user.email.lower()]
+    if len(users) != 0:
+        raise HTTPError(status_code=400, detail="Cannot compete with yourself.")
+
     data = {
         **competition.model_dump(exclude_none=True),
         "creator_id": user.id,
