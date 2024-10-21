@@ -52,7 +52,7 @@ class User(Base):
     __tablename__ = "users"
     __table_args__ = {'extend_existing': True}
 
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    id: Mapped[UUID] = mapped_column(primary_key=True, index=True, default=uuid4)
     email: Mapped[str] = mapped_column(unique=True)
     first_name: Mapped[Optional[str]]
     last_name: Mapped[Optional[str]]
@@ -100,13 +100,13 @@ class CompetitionUsers(Base):
     __tablename__ = "competition_users"
     id: Mapped[int] = mapped_column(primary_key=True, index=True, autoincrement=True)
     competition_id: Mapped[UUID] = mapped_column(ForeignKey("competitions.id"))
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    user_id: Mapped[UUID] = mapped_column(ForeignKey("users.id"))
 
 
 class Leaderboard(Base):
     __tablename__ = "leaderboard"
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    user_id: Mapped[UUID] = mapped_column(ForeignKey("users.id"))
     score: Mapped[int]
     accuracy: Mapped[float]
     # More to come in here

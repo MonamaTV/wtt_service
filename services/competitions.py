@@ -17,7 +17,7 @@ def create_competition(user, competition: CompetitionModel, db: Session):
     if len(competition.competitors) == 0:
         raise HTTPError(status_code=400, detail="At least add one peer.")
 
-    [validate_wtc_email(email) for email in competition.competitors]
+    # [validate_wtc_email(email) for email in competition.competitors]
 
     data = {
         **competition.model_dump(exclude_none=True),

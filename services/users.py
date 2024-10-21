@@ -13,6 +13,8 @@ from os import getenv
 from fastapi.encoders import jsonable_encoder
 from config.schemas import Register, Login, UserModel
 from datetime import datetime, timedelta
+from uuid import UUID
+
 
 oauth2 = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
@@ -57,7 +59,7 @@ def create_user(user: Register, db: Session):
 
     token = create_user_verify_token({
         "email": user.email,
-        "user_id": new_user.id
+        "user_id": str(new_user.id)
     })
     #Todo: Find a good email service
     # send_email(user.email, email_split[0], token)
@@ -130,7 +132,7 @@ def get_logged_in_user(token: Annotated[str, Depends(oauth2)], db: Session = Dep
     )
     try:
         decoded_token = jwt.decode(token, getenv("SECRET_KEY"), algorithms=[getenv("HASH_ALGO")])
-        user_id, email = decoded_token.get("user_id"), decoded_token.get("email")
+        user_id, email = UUID(decoded_token.get("user_id")), decoded_token.get("email")
     except JWTError as e:
         raise credentials_exception
 
@@ -214,10 +216,14 @@ def get_user_by_email(email: EmailStr, db: Session):
     return user
 
 
-def get_user_stats(user_name: str, db: Session):
-    user_email = user_name.lower() + "@gmail.com"
+def get_user_by_id(user_id: UUID, db: Session):
+    user = db.query(User).filter(User.id == user_id).first()
+    return user
+
+
+def get_user_stats(user_id: UUID, db: Session):
     scores_user = (db.query(Score).join(User)
-                   .filter(User.email == user_email)
+                   .filter(User.id == user_id)
                    .order_by(Score.played_at)
                    .limit(10)
                    .all())
