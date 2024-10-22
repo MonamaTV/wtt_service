@@ -1,8 +1,12 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, DeclarativeBase
+import os
+from dotenv import load_dotenv
 
 
-DB_URL = "sqlite:///typing.db"
+load_dotenv()
+
+DB_URL = os.getenv('DB')
 engine = create_engine(
     DB_URL
 )
