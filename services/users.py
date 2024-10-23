@@ -40,7 +40,7 @@ def create_user(user: Register, db: Session):
     # if email_split[0][-3:] != "023":
     #     raise HTTPException(status_code=400, detail=f"Cohort {email_split[0][-3:]} not permitted")
 
-    db_user = db.query(User).filter(User.email == user.email).first()
+    db_user = db.query(User).filter(User.email == user.email.lower()).first()
     if db_user:
         raise NotFound("User already exists.")
 
@@ -50,7 +50,9 @@ def create_user(user: Register, db: Session):
     hashed_password = hash_password(user.password)
     # TODO: Remove the verified field, and uncomment back the send email part
     updated_user = {
-            **user.model_dump(exclude_none=True), "password": hashed_password}
+        **user.model_dump(exclude_none=True), "password": hashed_password, "email": user.email.lower()
+    }
+
     del updated_user["confirm_password"]
 
     new_user = User(**updated_user)
@@ -68,7 +70,7 @@ def create_user(user: Register, db: Session):
 
 
 def authenticate_user(login: Login, db: Session):
-    user = db.query(User).filter(User.email == login.email).first()
+    user = db.query(User).filter(User.email == login.email.lower()).first()
     if user is None:
         raise NotFound("User does not exist.")
     if not verify_password(user.password, login.password):
@@ -87,7 +89,6 @@ def create_user_access_token(user_data: Dict):
     to_encode = user_data.copy()
     expires_in = int(getenv("ACCESS_TOKEN_EXPIRE_HOURS"))
     to_encode["exp"] = datetime.now() + timedelta(hours=expires_in)
-    print(to_encode)
     encoded_token = jwt.encode(to_encode, getenv(
         "SECRET_KEY"), algorithm=getenv("HASH_ALGO"))
     return encoded_token
