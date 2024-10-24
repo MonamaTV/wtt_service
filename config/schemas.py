@@ -1,6 +1,7 @@
 from typing import Optional, List
 from datetime import date, time
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, field_validator
+import re
 
 
 class ScoreModel(BaseModel):
@@ -26,9 +27,19 @@ class UserModel(BaseModel):
     bio: Optional[str] = None
 
 
+pattern = r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$"
+
+
 class Register(UserModel):
     email: EmailStr
     password: str = Field(min_length=8)
+
+    @field_validator("password")
+    def name_must_contain_space(cls, value):
+        if re.fullmatch(pattern, value) is None:
+            raise ValueError('Password is not strong.')
+        return value.title()
+
     confirm_password: str = Field(min_length=8)
 
 

@@ -17,6 +17,9 @@ def decode_error_message(error_type, field, required):
     if error_type == "missing":
         return f"{field} is required."
     if error_type == "value_error":
+        if "Password is not strong." in str(required[0]):
+            return ("Password must contain 8 characters long. At least 1 special character, 1 uppercase, 1 lowercase, "
+                    "1 digit.")
         return f"{field} provided is invalid."
 
     return "An error occurred validating your data."
